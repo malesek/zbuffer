@@ -43,4 +43,8 @@ public class ColorRaster implements Raster<Integer>{
         g.setColor(new Color(pixelValue));
         g.drawRect(0,0,img.getWidth(),img.getHeight());
     }
+
+    public void present(Graphics g){
+        g.drawImage(img, 0, 0, null);
+    }
 }

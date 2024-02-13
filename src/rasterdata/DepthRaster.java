@@ -41,7 +41,7 @@ public class DepthRaster implements Raster<Float>{
     public void clear(Float pixelValue) {
         for (int i = 0; i < img[0].length; i++){
             for(int j = 0; j < img.length; j++){
-                img[i][j] = pixelValue;
+                img[j][i] = pixelValue;
             }
         }
     }
