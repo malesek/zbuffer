@@ -2,13 +2,13 @@ package rasterdata;
 
 import java.util.Optional;
 
-public class DepthRaster implements Raster<Float>{
+public class DepthRaster implements Raster<Double>{
 
-    private final float[][] img;
+    private final double[][] img;
 
     public DepthRaster(int width, int height){
-        img = new float[width][height];
-        clear(1F);
+        img = new double[width][height];
+        clear(1.0);
     }
 
     @Override
@@ -22,14 +22,14 @@ public class DepthRaster implements Raster<Float>{
     }
 
     @Override
-    public Optional<Float> getPixel(int c, int r) {
+    public Optional<Double> getPixel(int c, int r) {
         if(isValidAddress(c,r))
             return Optional.of(img[c][r]);
         return Optional.empty();
     }
 
     @Override
-    public boolean setPixel(int c, int r, Float pixelValue) {
+    public boolean setPixel(int c, int r, Double pixelValue) {
         if(isValidAddress(c,r)){
             img[c][r] = pixelValue;
             return true;
@@ -38,7 +38,7 @@ public class DepthRaster implements Raster<Float>{
     }
 
     @Override
-    public void clear(Float pixelValue) {
+    public void clear(Double pixelValue) {
         for (int i = 0; i < img[0].length; i++){
             for(int j = 0; j < img.length; j++){
                 img[j][i] = pixelValue;

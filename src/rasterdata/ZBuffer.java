@@ -30,21 +30,24 @@ public class ZBuffer implements Raster<Integer>{
         return colorRaster.setPixel(c,r,pixelValue);
     }
 
-    public boolean setPixel(int c, int r, Integer pixelValue, float depth){
+    public void setPixel(int c, int r, Integer pixelValue, double depth){
         //ZTest
-        //check value of old depth
-        if(depthRaster.getPixel(c, r).isPresent())
-            if(depthRaster.getPixel(c, r).get() > depth){
-                colorRaster.setPixel(c,r,pixelValue);
-                depthRaster.setPixel(c,r,depth);
-                return true;
-            }
-        return false;
+        if(isValidAddress(c, r)){
+            //check value of old depth
+            Optional<Double> oldDepth = this.depthRaster.getPixel(c,r);
+
+            if(depthRaster.getPixel(c, r).isPresent() && depth < oldDepth.get())
+                if(depthRaster.getPixel(c, r).get() > depth){
+                    colorRaster.setPixel(c,r,pixelValue);
+                    depthRaster.setPixel(c,r,depth);
+                }
+        }
+
     }
 
     @Override
     public void clear(Integer pixelValue) {
         colorRaster.clear(pixelValue);
-        depthRaster.clear(1F);
+        depthRaster.clear(1.0);
     }
 }
