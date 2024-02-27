@@ -5,6 +5,11 @@ import objectdata.Vertex;
 import rasterdata.ZBuffer;
 
 public class LineRasterizer {
+    public static void rasterize(ZBuffer zBuffer, Vertex v1, Vertex v2){
+        // TODO
+//        //sort v1, v2, v3
+//        if(v1.getPosition().getY() > v2.getPosition().getY()){
+//            Vertex temp = v1;
 //            v1 = v2;
 //            v2 = temp;
 //        }
