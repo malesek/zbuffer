@@ -1,5 +1,6 @@
 package objectdata;
 
+import transforms.Mat4;
 import transforms.Point3D;
 
 import java.util.List;
@@ -18,7 +19,7 @@ public class ArrowTest extends Solid {
         ), List.of(
                 new Part(0, 1, Topology.LINE_LIST),
                 new Part(2, 1, Topology.TRIANGLE_LIST)
-        ));
+        ), new Mat4());
     }
 
 }
