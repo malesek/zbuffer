@@ -1,37 +1,121 @@
 package render;
 
 import linalg.Lerp;
+import objectdata.Part;
 import objectdata.Scene;
 import objectdata.Solid;
 import objectdata.Vertex;
 import rasterdata.ZBuffer;
 import transforms.Mat4;
+import transforms.Point3D;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
+import objectdata.Topology;
+
+import static rasterops.LineRasterizer.rasterize;
+import static rasterops.TriangleRasterizer.rasterizeVertex;
 
 public class Renderer3D {
-    public void renderScene(Scene scene, Mat4 viewMat, Mat4 projMat, ZBuffer img){
-
-        //for each solid
-            //call rendersolid with the appropriate transMatrix = modelMat * viewMat * projMat
-
+    public void renderScene(Scene scene, Mat4 viewMat, Mat4 projMat, ZBuffer img) {
+        for (Solid solid : scene.getSolids()) {
+            Mat4 transMatrix = solid.getModelMat().mul(viewMat).mul(projMat);
+            //Mat4 transMatrix = projMat.mul(viewMat).mul(solid.getModelMat());
+            renderSolid(solid, transMatrix, img);
+        }
     }
-
-    private void renderSolid(Solid solid, Mat4 transMatrix){
+   private void renderSolid(Solid solid, Mat4 transMatrix, ZBuffer img){
+       List<Vertex> tempVB = new ArrayList<>();
         //transformation of all vertices from vertexBuffer
-        //primitive assembly (lines, triangles)
-        //for each primitive
-            //for each vertex
-                //if isInViewSpace
-                    //continue
-                    //dehomog
-                    //transform toViewPort
-                    //rasterize
-    }
+       for(Vertex vertex : solid.getVertexBuffer()){
+           vertex = new Vertex(vertex.getPosition().mul(transMatrix), vertex.getColor());
+           tempVB.add(vertex);
+       }
+
+       for (Part part : solid.getPartBuffer()) {
+           switch (part.getTopology()) {
+               //primitive assembly (lines, triangles)
+               case LINE_LIST -> {
+                   //for each primitive
+                   for(int i = part.getStartIndex(); i < part.getStartIndex() + part.getCount() * 2; i+=2){
+                       //for each vertex
+                       Vertex v1 = tempVB.get(solid.getIndexBuffer().get(i));
+                       Vertex v2 = tempVB.get(solid.getIndexBuffer().get(i+1));
+                       //if isInViewSpace
+                       if(isInViewSpace(List.of(v1,v2))){
+                           //dehomog
+                           v1 = dehomog(v1);
+                           v2 = dehomog(v2);
+                           //transform toViewPort
+                           Vertex viewportV1 = toViewport(v1, img.getWidth(), img.getHeight());
+                           Vertex viewportV2 = toViewport(v2, img.getWidth(), img.getHeight());
+                           //rasterize
+                           rasterize(img, viewportV1, viewportV2);
+                       }
+                       else {
+                           //clip for dehomog
+                           List<Vertex> clipped = clipZ(v1,v2);
+                           v1 = clipped.get(0);
+                           v2 = clipped.get(1);
+                           //dehomog
+                           v1 = dehomog(v1);
+                           v2 = dehomog(v2);
+                           //transform toViewPort
+                           Vertex viewportV1 = toViewport(v1, img.getWidth(), img.getHeight());
+                           Vertex viewportV2 = toViewport(v2, img.getWidth(), img.getHeight());
+                           //rasterize
+                           rasterize(img, v1, v2);
+                       }
+                   }
+               }
+               case TRIANGLE_LIST -> {
+                   for(int i = part.getStartIndex(); i < part.getStartIndex() + part.getCount() * 3; i+=3){
+                       Vertex v1 = tempVB.get(solid.getIndexBuffer().get(i));
+                       Vertex v2 = tempVB.get(solid.getIndexBuffer().get(i+1));
+                       Vertex v3 = tempVB.get(solid.getIndexBuffer().get(i+2));
+
+                       if(isInViewSpace(List.of(v1,v2,v3))){
+                           //dehomog
+                           v1 = dehomog(v1);
+                           v2 = dehomog(v2);
+                           v3 = dehomog(v3);
+                           //transform toViewPort
+                           Vertex viewportV1 = toViewport(v1, img.getWidth(), img.getHeight());
+                           Vertex viewportV2 = toViewport(v2, img.getWidth(), img.getHeight());
+                           Vertex viewportV3 = toViewport(v3, img.getWidth(), img.getHeight());
+                           //rasterize
+                           rasterizeVertex(img, viewportV1, viewportV2, viewportV3);
+                       }
+                       else {
+                           //clip for dehomog
+                           List<Vertex> clipped = clipZ(v1,v2,v3);
+                           //clip can create 2 triangles (6 vertices)
+                           for(int j = 0; j < clipped.size(); j+=3){
+                               v1 = clipped.get(j);
+                               v2 = clipped.get(j+1);
+                               v3 = clipped.get(j+2);
+                               //dehomog
+                               v1 = dehomog(v1);
+                               v2 = dehomog(v2);
+                               v3 = dehomog(v3);
+                               //transform toViewPort
+                               Vertex viewportV1 = toViewport(v1, img.getWidth(), img.getHeight());
+                               Vertex viewportV2 = toViewport(v2, img.getWidth(), img.getHeight());
+                               Vertex viewportV3 = toViewport(v3, img.getWidth(), img.getHeight());
+                               //rasterize
+                               rasterizeVertex(img, viewportV1, viewportV2, viewportV3);
+                           }
+                       }
+
+                   }
+
+               }
+           }
+       }
+   }
 
     private boolean isInViewSpace(List<Vertex> vertexList){
         boolean allTooLeft = vertexList.stream().allMatch(v -> v.getPosition().getX() > -v.getPosition().getW());
@@ -87,5 +171,24 @@ public class Renderer3D {
 
     private int verticesBelowZero(Vertex v1, Vertex v2, Vertex v3) {
         return (int) Stream.of(v1, v2, v3).filter(v -> v.getPosition().getZ() < 0).count();
+    }
+
+    public Vertex dehomog(Vertex vertex) {
+        double w = vertex.getPosition().getW();
+        if (w != 0) {
+            Point3D position = new Point3D(vertex.getPosition().getX() / w,
+                    vertex.getPosition().getY() / w,
+                    vertex.getPosition().getZ() / w);
+            return new Vertex(position, vertex.getColor());
+        } else {
+            return vertex;
+        }
+    }
+    private Vertex toViewport(Vertex vertex, int width, int height) {
+        // Transform the vertex coordinates to viewport space
+        double x = ((vertex.getPosition().getX() + 1) * (width-1)) / 2;
+        double y = ((1 - vertex.getPosition().getY()) * (height-1)) / 2;
+        double z = vertex.getPosition().getZ(); // No transformation on z-axis in viewport
+        return new Vertex(new Point3D(x, y, z), vertex.getColor());
     }
 }
