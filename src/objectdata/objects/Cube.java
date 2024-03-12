@@ -5,6 +5,7 @@ import objectdata.Solid;
 import objectdata.Topology;
 import objectdata.Vertex;
 import transforms.Mat4;
+import transforms.Mat4Identity;
 import transforms.Point3D;
 import java.util.List;
 
@@ -12,14 +13,14 @@ public class Cube extends Solid {
 
     public Cube() {
         super(List.of(
-                new Vertex(new Point3D(100, 100, 0.5, 1), 0xff0000),
-                new Vertex(new Point3D(150, 100, 0.5, 1), 0x00ff00),
-                new Vertex(new Point3D(150, 150, 0.5, 1), 0x0000ff),
-                new Vertex(new Point3D(100, 150, 0.5, 1), 0x00ff00),
-                new Vertex(new Point3D(100, 100, 1.5, 1), 0xff0000),
-                new Vertex(new Point3D(150, 100, 1.5, 1), 0x00ff00),
-                new Vertex(new Point3D(150, 150, 1.5, 1), 0x0000ff),
-                new Vertex(new Point3D(0, 150, 1.5, 1), 0x00ff00)
+                new Vertex(new Point3D(-0.5, -0.5, 0.5), 0xFF0000), // Red
+                new Vertex(new Point3D(0.5, -0.5, 0.5), 0x00FF00), // Green
+                new Vertex(new Point3D(0.5, 0.5, 0.5), 0x0000FF), // Blue
+                new Vertex(new Point3D(-0.5, 0.5, 0.5), 0xFFFF00), // Yellow
+                new Vertex(new Point3D(-0.5, -0.5, 1.5), 0xFF00FF), // Magenta
+                new Vertex(new Point3D(0.5, -0.5, 1.5), 0x00FFFF), // Cyan
+                new Vertex(new Point3D(0.5, 0.5, 1.5), 0xFFFFFF), // White
+                new Vertex(new Point3D(-0.5, 0.5, 1.5), 0xCCCCCC) // Grey
         ), List.of(
                 // Front face
                 0, 1, 2,
@@ -41,6 +42,6 @@ public class Cube extends Solid {
                 1, 0, 4
         ), List.of(
                 new Part(0, 12, Topology.TRIANGLE_LIST)
-        ), new Mat4());
+        ), new Mat4Identity());
     }
 }

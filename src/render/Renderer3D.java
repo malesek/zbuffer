@@ -22,9 +22,8 @@ import static rasterops.TriangleRasterizer.rasterizeVertex;
 public class Renderer3D {
     public void renderScene(Scene scene, Mat4 viewMat, Mat4 projMat, ZBuffer img) {
         for (Solid solid : scene.getSolids()) {
-            Mat4 transMatrix = solid.getModelMat().mul(viewMat).mul(projMat);
-            //Mat4 transMatrix = projMat.mul(viewMat).mul(solid.getModelMat());
-            renderSolid(solid, transMatrix, img);
+                Mat4 transMatrix = solid.getModelMat().mul(viewMat).mul(projMat);
+                renderSolid(solid, transMatrix, img);
         }
     }
    private void renderSolid(Solid solid, Mat4 transMatrix, ZBuffer img){
@@ -67,7 +66,7 @@ public class Renderer3D {
                            Vertex viewportV1 = toViewport(v1, img.getWidth(), img.getHeight());
                            Vertex viewportV2 = toViewport(v2, img.getWidth(), img.getHeight());
                            //rasterize
-                           rasterize(img, v1, v2);
+                           rasterize(img, viewportV1, viewportV2);
                        }
                    }
                }
