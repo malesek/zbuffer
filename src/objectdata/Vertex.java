@@ -2,14 +2,25 @@ package objectdata;
 
 import linalg.Vectorizable;
 import transforms.Point3D;
+import transforms.Vec2D;
+
+import java.util.Optional;
 
 public class Vertex implements Vectorizable<Vertex> {
     private final Point3D position;
     private final int color;
+    private final Vec2D textureCoord;
 
     public Vertex(Point3D _position, int _color){
         position = _position;
         color = _color;
+        textureCoord = null;
+    }
+
+    public Vertex(Point3D _position, int _color, Vec2D _textureCoord){
+        position = _position;
+        color = _color;
+        textureCoord = _textureCoord;
     }
 
     public int getColor() {
@@ -28,7 +39,10 @@ public class Vertex implements Vectorizable<Vertex> {
         final int blueOther = (other.color >> 8) & 0xFF;
         final int greenOther = other.color & 0xFF;
         final int color = (red+redOther) << 16 | (green + greenOther) << 8 | (blue+blueOther);
-        return new Vertex(position.add(other.position), color);
+
+        if(textureCoord != null && other.textureCoord != null) return new Vertex(position.add(other.position), color, textureCoord.add(other.textureCoord));
+
+        else return new Vertex(position.add(other.position), color);
 
     }
 
@@ -37,6 +51,11 @@ public class Vertex implements Vectorizable<Vertex> {
         final int blue = (int) (((color >> 8) & 0xFF) * t);
         final int green = (int) ((color & 0xFF) * t);
         final int color = (red) << 16 | (green) << 8 | (blue);
-        return new Vertex(position.mul(t), color);
+        if(textureCoord != null) return new Vertex(position.mul(t), color, textureCoord.mul(t));
+        else return new Vertex(position.mul(t), color);
+    }
+
+    public Optional<Vec2D> getTextureCoord() {
+        return  Optional.ofNullable(textureCoord);
     }
 }

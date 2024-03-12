@@ -6,27 +6,25 @@ import objectdata.Scene;
 import objectdata.Solid;
 import objectdata.Vertex;
 import rasterdata.ZBuffer;
+import rasterops.LineRasterizer;
+import rasterops.TriangleRasterizer;
+import shader.FragmentShader;
 import transforms.Mat4;
 import transforms.Point3D;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
-import objectdata.Topology;
-
-import static rasterops.LineRasterizer.rasterize;
-import static rasterops.TriangleRasterizer.rasterizeVertex;
 
 public class Renderer3D {
-    public void renderScene(Scene scene, Mat4 viewMat, Mat4 projMat, ZBuffer img) {
+    public void renderScene(Scene scene, Mat4 viewMat, Mat4 projMat, ZBuffer img, FragmentShader fragmentShader) {
         for (Solid solid : scene.getSolids()) {
                 Mat4 transMatrix = solid.getModelMat().mul(viewMat).mul(projMat);
-                renderSolid(solid, transMatrix, img);
+                renderSolid(solid, transMatrix, img, fragmentShader);
         }
     }
-   private void renderSolid(Solid solid, Mat4 transMatrix, ZBuffer img){
+   private void renderSolid(Solid solid, Mat4 transMatrix, ZBuffer img, FragmentShader fragmentShader){
        List<Vertex> tempVB = new ArrayList<>();
         //transformation of all vertices from vertexBuffer
        for(Vertex vertex : solid.getVertexBuffer()){
@@ -52,7 +50,7 @@ public class Renderer3D {
                            Vertex viewportV1 = toViewport(v1, img.getWidth(), img.getHeight());
                            Vertex viewportV2 = toViewport(v2, img.getWidth(), img.getHeight());
                            //rasterize
-                           rasterize(img, viewportV1, viewportV2);
+                           LineRasterizer.rasterize(img, viewportV1, viewportV2);
                        }
                        else {
                            //clip for dehomog
@@ -66,7 +64,7 @@ public class Renderer3D {
                            Vertex viewportV1 = toViewport(v1, img.getWidth(), img.getHeight());
                            Vertex viewportV2 = toViewport(v2, img.getWidth(), img.getHeight());
                            //rasterize
-                           rasterize(img, viewportV1, viewportV2);
+                           LineRasterizer.rasterize(img, viewportV1, viewportV2);
                        }
                    }
                }
@@ -86,7 +84,7 @@ public class Renderer3D {
                            Vertex viewportV2 = toViewport(v2, img.getWidth(), img.getHeight());
                            Vertex viewportV3 = toViewport(v3, img.getWidth(), img.getHeight());
                            //rasterize
-                           rasterizeVertex(img, viewportV1, viewportV2, viewportV3);
+                           TriangleRasterizer.rasterize(img, viewportV1, viewportV2, viewportV3, fragmentShader);
                        }
                        else {
                            //clip for dehomog
@@ -105,7 +103,7 @@ public class Renderer3D {
                                Vertex viewportV2 = toViewport(v2, img.getWidth(), img.getHeight());
                                Vertex viewportV3 = toViewport(v3, img.getWidth(), img.getHeight());
                                //rasterize
-                               rasterizeVertex(img, viewportV1, viewportV2, viewportV3);
+                               TriangleRasterizer.rasterize(img, viewportV1, viewportV2, viewportV3, fragmentShader);
                            }
                        }
 
