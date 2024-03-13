@@ -14,12 +14,12 @@ public class Plumbob extends Solid {
 
     public Plumbob() {
         super(List.of(
-                new Vertex(new Point3D(0.8, 0.8, 0.5), 0x00FF00, new Vec2D(0, 0.5)), // Red
-                new Vertex(new Point3D(0.8, 1.2, 0.5), 0x00FF00, new Vec2D(1, 0.5)), // Green
-                new Vertex(new Point3D(1.2, 0.8, 0.5), 0x00FF00, new Vec2D(1, 0.5)), // Magenta
-                new Vertex(new Point3D(1.2, 1.2, 0.5), 0x00FF00, new Vec2D(0, 0.5)), // Cyan
-                new Vertex(new Point3D(1, 1, 1), 0xFF00FF, new Vec2D(0.5, 0)), // Magenta
-                new Vertex(new Point3D(1, 1, 0), 0x00FFFF, new Vec2D(0.5, 1)) // Cyan
+                new Vertex(new Point3D(0.8, 0.8, 0.5), 0x00FF00, new Vec2D(0, 0.5)),
+                new Vertex(new Point3D(0.8, 1.2, 0.5), 0x00FF00, new Vec2D(1, 0.5)),
+                new Vertex(new Point3D(1.2, 0.8, 0.5), 0x00FF00, new Vec2D(1, 0.5)),
+                new Vertex(new Point3D(1.2, 1.2, 0.5), 0x00FF00, new Vec2D(0, 0.5)),
+                new Vertex(new Point3D(1, 1, 1), 0xFF00FF, new Vec2D(0.5, 0)),
+                new Vertex(new Point3D(1, 1, 0), 0x00FFFF, new Vec2D(0.5, 1))
         ), List.of(
                 //Top part
                 0, 1, 4,
