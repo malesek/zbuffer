@@ -10,8 +10,12 @@ import java.util.Optional;
 public class TextureRaster implements Raster<Integer>{
     private final BufferedImage img;
 
-    public TextureRaster(String path) throws IOException {
-        this.img = ImageIO.read(new File(path));
+    public TextureRaster(String path) {
+        try {
+            this.img = ImageIO.read(new File(path));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

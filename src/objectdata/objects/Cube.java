@@ -4,7 +4,6 @@ import objectdata.Part;
 import objectdata.Solid;
 import objectdata.Topology;
 import objectdata.Vertex;
-import transforms.Mat4;
 import transforms.Mat4Identity;
 import transforms.Point3D;
 import java.util.List;

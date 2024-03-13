@@ -18,13 +18,13 @@ import java.util.List;
 import java.util.stream.Stream;
 
 public class Renderer3D {
-    public void renderScene(Scene scene, Mat4 viewMat, Mat4 projMat, ZBuffer img, FragmentShader fragmentShader) {
+    public void renderScene(Scene scene, Mat4 viewMat, Mat4 projMat, ZBuffer img, FragmentShader fragmentShader, boolean wired) {
         for (Solid solid : scene.getSolids()) {
                 Mat4 transMatrix = solid.getModelMat().mul(viewMat).mul(projMat);
-                renderSolid(solid, transMatrix, img, fragmentShader);
+                renderSolid(solid, transMatrix, img, fragmentShader, wired);
         }
     }
-   private void renderSolid(Solid solid, Mat4 transMatrix, ZBuffer img, FragmentShader fragmentShader){
+   private void renderSolid(Solid solid, Mat4 transMatrix, ZBuffer img, FragmentShader fragmentShader, boolean wired){
        List<Vertex> tempVB = new ArrayList<>();
         //transformation of all vertices from vertexBuffer
        for(Vertex vertex : solid.getVertexBuffer()){
@@ -84,7 +84,14 @@ public class Renderer3D {
                            Vertex viewportV2 = toViewport(v2, img.getWidth(), img.getHeight());
                            Vertex viewportV3 = toViewport(v3, img.getWidth(), img.getHeight());
                            //rasterize
-                           TriangleRasterizer.rasterize(img, viewportV1, viewportV2, viewportV3, fragmentShader);
+                           if(!wired) {
+                               TriangleRasterizer.rasterize(img, viewportV1, viewportV2, viewportV3, fragmentShader);
+                           }
+                           else {
+                               LineRasterizer.rasterize(img, viewportV1, viewportV2);
+                               LineRasterizer.rasterize(img, viewportV1, viewportV3);
+                               LineRasterizer.rasterize(img, viewportV2, viewportV3);
+                           }
                        }
                        else {
                            //clip for dehomog
@@ -102,13 +109,18 @@ public class Renderer3D {
                                Vertex viewportV1 = toViewport(v1, img.getWidth(), img.getHeight());
                                Vertex viewportV2 = toViewport(v2, img.getWidth(), img.getHeight());
                                Vertex viewportV3 = toViewport(v3, img.getWidth(), img.getHeight());
-                               //rasterize
-                               TriangleRasterizer.rasterize(img, viewportV1, viewportV2, viewportV3, fragmentShader);
+                               //rasterize filled
+                               if(!wired) {
+                                   TriangleRasterizer.rasterize(img, viewportV1, viewportV2, viewportV3, fragmentShader);
+                               }
+                               else {
+                                   LineRasterizer.rasterize(img, viewportV1, viewportV2);
+                                   LineRasterizer.rasterize(img, viewportV1, viewportV3);
+                                   LineRasterizer.rasterize(img, viewportV2, viewportV3);
+                               }
                            }
                        }
-
                    }
-
                }
            }
        }
@@ -116,11 +128,11 @@ public class Renderer3D {
 
     private boolean isInViewSpace(List<Vertex> vertexList){
         boolean allTooLeft = vertexList.stream().allMatch(v -> v.getPosition().getX() > -v.getPosition().getW());
-        boolean allTooRight = vertexList.stream().allMatch(v -> v.getPosition().getX() > v.getPosition().getW());
+        boolean allTooRight = vertexList.stream().allMatch(v -> v.getPosition().getX() < v.getPosition().getW());
         boolean allTooClose = vertexList.stream().allMatch(v -> v.getPosition().getZ() > -v.getPosition().getW());
-        boolean allTooFar = vertexList.stream().allMatch(v -> v.getPosition().getZ() > v.getPosition().getW());
+        boolean allTooFar = vertexList.stream().allMatch(v -> v.getPosition().getZ() < v.getPosition().getW());
         boolean allTooUp = vertexList.stream().allMatch(v -> v.getPosition().getY() > -v.getPosition().getW());
-        boolean allTooDown = vertexList.stream().allMatch(v -> v.getPosition().getY() > v.getPosition().getW());
+        boolean allTooDown = vertexList.stream().allMatch(v -> v.getPosition().getY() < -v.getPosition().getW());
 
         return !(allTooLeft || allTooRight || allTooClose || allTooFar || allTooDown || allTooUp);
     }
