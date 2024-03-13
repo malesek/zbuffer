@@ -39,9 +39,11 @@ public class ColorRaster implements Raster<Integer>{
 
     @Override
     public void clear(Integer pixelValue) {
-        Graphics g = img.getGraphics();
-        g.setColor(new Color(pixelValue));
-        g.drawRect(0,0,img.getWidth(),img.getHeight());
+        for (int i = 0; i < getWidth(); i++) {
+            for (int j = 0; j < getHeight(); j++) {
+                setPixel(i, j, pixelValue);
+            }
+        }
     }
 
     public void present(Graphics g){
