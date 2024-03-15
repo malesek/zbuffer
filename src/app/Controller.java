@@ -25,6 +25,7 @@ public class Controller {
     private ZBuffer zBuffer;
     private Point mousePos = new Point();
     Scene scene;
+    Thread thread;
     private List<Solid> solids = new ArrayList<>();
     private Solid activeSolidObject;
     private Mat4 viewMatrix = new Mat4Identity();
@@ -37,6 +38,7 @@ public class Controller {
     private int activeAxis = 0;
     private boolean persp = true;
     private boolean wired = false;
+    private boolean animation = false;
 
 
     public Controller(Panel panel) {
@@ -89,6 +91,10 @@ public class Controller {
                     case KeyEvent.VK_E -> camera = camera.backward(0.1);
                     case KeyEvent.VK_P -> persp = !persp;
                     case KeyEvent.VK_X -> wired = !wired;
+                    case KeyEvent.VK_T -> {
+                        activeAxis++;
+                        if(activeAxis == 3) activeAxis = 0;
+                    }
                     case KeyEvent.VK_R -> {
                         switch (activeAxis) {
                             case 0 -> {
@@ -121,10 +127,7 @@ public class Controller {
                             }
                         }
                     }
-                    case KeyEvent.VK_T -> {
-                        activeAxis++;
-                        if(activeAxis == 3) activeAxis = 0;
-                    }
+                    case KeyEvent.VK_M -> animation();
                 }
 
                 redraw();
@@ -178,4 +181,40 @@ public class Controller {
 
         panel.repaint();
     }
+
+    private void animation() {
+        animation = !animation;
+        double animationSpeed = 0.02;
+
+        thread = new Thread(() -> {
+            while (animation) {
+                // Rotate the active solid object around currently chosen axis
+                switch (activeAxis) {
+                    case 0 -> {
+                        activeSolidObject.setModelMat(activeSolidObject.getModelMat().mul(new Mat4RotX(animationSpeed)));
+                    }
+                    case 1 -> {
+                        activeSolidObject.setModelMat(activeSolidObject.getModelMat().mul(new Mat4RotY(animationSpeed)));
+                    }
+                    case 2 -> {
+                        activeSolidObject.setModelMat(activeSolidObject.getModelMat().mul(new Mat4RotZ(animationSpeed)));
+                    }
+                }
+
+                // Redraw the scene
+                redraw();
+
+                // Sleep for a short duration to control the animation speed
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        // Start the animation thread
+        thread.start();
+    }
+
 }
